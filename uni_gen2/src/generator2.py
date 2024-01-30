@@ -62,48 +62,61 @@ class generator:
         exit(1)
 
     def setAmpl(self, A):
+        """установка амплитуды выходного сигнала, по умолчанию 1"""
         self.Ampl = self.Ampl * A
 
     def setSigma(self, sigma):
+        """установка значения sigma, для генератора шума, по умолчанию 0"""
         self.sigma = sigma
 
     def setFcar(self, fc):
+        """установка частоты генератора, по умолчанию 525 Гц"""
         self.fc = fc
 
     def setFs(self, fs):
+        """установка частоты дискретизации, по умолчанию 8000 Гц"""
         self.__class__.fs = fs
         self.__class__.Time = np.arange(0, self.simTime, 1 / self.fs)
 
     def setSimTime(self, simTime):
+        """установка времени моделирования, по умолчанию 20 сек"""
         self.simTime = simTime
 
     def plotEnable(self, flag):
+        """установка флага вывода графиков на экран,по умолчанию True"""
         self.plotsig = flag
 
-    def setCode(self, code):
-        self.code = code
+    def setFskCode(self, code):
+        """установка кода модуляции ЧИМ генератора, по умолчанию 0x2с"""
+        self.fsk_code = code
 
     def setAlsnCode(self, code):
+        """установка кода сигнала АЛСН, по умолчанию G (код З)"""
         self.alsn_code = code
 
     def setModulation(self, mod):
+        """установка вида модуляции, по умолчанию none"""   
         self.modulation = mod
 
     def setAMmodFreq(self, freq):
+        """установка частоты АМ модуляции, по умолчанию 0"""
         self.f_am_mod = freq
 
     def setAlsenCodes(self, code1, code2):
+        """установка кодов модуляции АЛСЕН генератора, по умолчанию 0x1f,0x2с"""
         self.Byte1 = code1
         self.Byte2 = code2
 
     # --modulators-----------------------------------------------
 
     def AM(self):
+        """ формирователь АМ сигнала"""
         print("\033[32mгенерируем АМ сигнал")
 
         return self.Signal(self.Ampl, self.Phase)
 
     def FSK(self):
+        """формирователь ЧИМ сигнала """
         print("\033[32mгенерируем ЧИМ сигнал")
         counter = 0
         data_sig = []
@@ -112,7 +125,7 @@ class generator:
         Tb = 1 / self.fsk_bit_rate
         limit = self.fs // self.fsk_bit_rate
         bit_num = 0
-        bauer_code = np.unpackbits(np.array([self.code], dtype=np.uint8))
+        bauer_code = np.unpackbits(np.array([self.fsk_code], dtype=np.uint8))
         while counter < len(self.Time):
             bit = bauer_code[bit_num]
             counter += 1
@@ -129,6 +142,7 @@ class generator:
         return self.Signal(self.Ampl, Phase)
 
     def ALSEN(self):
+        """формирователь сигнала АЛСЕН (QPSK) """
         print("\033[32mгенерируем 2ФРМ сигнал (АЛСЕН)")
         self.fmod = 0
         count_bit = 8
@@ -159,7 +173,7 @@ class generator:
         return self.Signal(self.Ampl, Phase)
 
     def ALSN(self):
-
+        """формирователь сигнала АЛСН"""
         print("\033[32mгенерируем сигнал АЛСН")
         alsn = []
         count_ticks = 0
@@ -208,7 +222,7 @@ class generator:
         return self.Signal(alsn, self.Phase)
 
     def PSK(self):
-
+        """формирователь фазоманипулированного сигнала"""
         print("\033[32mгенерируем ФИМ сигнал")
         print("\033[32mпока не реализовано")
         return 0
@@ -216,14 +230,13 @@ class generator:
     # ---------------------------------------------------------------------
 
     def Noise(self):
-
-        # Add AWGN noise to the transmitted Signal
+        """формирователь шумоподобного сигнала"""
         print("\033[32mгенерируем шум")
         noise = self.mu + self.sigma * np.random.normal(1, 1, len(self.Time))
         return noise
 
     def Signal(self, ampl, Phase):
-
+        """формирователь синусоидального сигнала"""
         signal = (
             ampl
             * np.cos(2 * np.pi * self.fc * self.Time + Phase)
@@ -232,6 +245,7 @@ class generator:
         return signal
 
     def make_wave_scaled(self, data, name="none"):
+        """формирователь wav файла (нормированный сигнал)"""
         print("\033[32mсоздаем wav файл")
         rate = self.fs
         scaled = np.int16(data / np.max(np.abs(data)) * 32767)
@@ -251,7 +265,7 @@ class generator:
         return 0
 
     def make_plot(self, data, N):
-
+        """функция построения графика сигнала и спектра сигнала)"""
         print("\033[32mсоздаем графики")
         figure(N)
         ax1 = plt.subplot(211)
@@ -259,7 +273,7 @@ class generator:
         if self.modulation == "AM":
             ax1.set_title("Сигнал " + str(self.fc) + " / " + str(self.f_am_mod) + " Гц")
         if self.modulation == "FSK":
-            ax1.set_title("Сигнал " + str(self.fc) + " / " + str(self.code))
+            ax1.set_title("Сигнал " + str(self.fc) + " / " + str(self.fsk_code))
         if self.modulation == "mix":
             ax1.set_title("Смесь сигналов")
         if self.modulation == "ALSN":
@@ -275,6 +289,7 @@ class generator:
         return 0
 
     def make_spectr(self, data, N):
+        """функция расчета спектра сигнала)"""
         print("\033[32mвычисляем спектр")
         figure(N)
         plt.grid(True)
@@ -287,6 +302,7 @@ class generator:
         return 0
 
     def calc_power(self, data):
+        """функция вычимсления мощности сигнала"""
         print("\033[32mвычисляем мощность")
         Power = (norm(data) ** 2) / len(data)
         return Power
@@ -315,7 +331,7 @@ gen1.setAlsenCodes(0x4a, 0xe0)
 gen1.setFs(8000)
 gen1.setFcar(174)
 gen1.setAmpl(384)
-# gen1.setCode(0xab)
+# gen1.setFskCode(0xab)
 # gen1.setAMmodFreq(12)
 #gen1.setAlsnCode("RY")
 signal = gen1.go()
@@ -333,7 +349,7 @@ gen2.modulation = "FSK"
 gen2.setFs(8000)
 gen2.setFcar(725)
 gen2.setAmpl(256)
-gen2.setCode(0xe0)
+gen2.setFskCode(0xe0)
 #gen2.setAMmodFreq(12)
 signal2 = gen2.go()
 
