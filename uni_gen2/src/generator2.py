@@ -26,7 +26,6 @@ class generator:
 
     fsk_code = 0x2C
     fsk_bit_rate = 13
-    f_fsk_dev = 11
 
     qpsk_bit_rate = 11
 
@@ -92,6 +91,10 @@ class generator:
 
     def setAMmodFreq(self, freq):
         self.f_am_mod = freq
+
+    def setAlsenCodes(self, code1, code2):
+        self.Byte1 = code1
+        self.Byte2 = code2
 
     # --modulators-----------------------------------------------
 
@@ -307,13 +310,14 @@ print("\033[33mМощность шума (временная область {:0.
 
 # -сигнал 1---------------------------------------------
 gen1 = generator()
-gen1.modulation = "ALSN"
+gen1.modulation = "ALSEN"
+gen1.setAlsenCodes(0x4a, 0xe0)
 gen1.setFs(8000)
-gen1.setFcar(50)
+gen1.setFcar(174)
 gen1.setAmpl(384)
-# gen1.setCode(0x54)
+# gen1.setCode(0xab)
 # gen1.setAMmodFreq(12)
-gen1.setAlsnCode("G")
+#gen1.setAlsnCode("RY")
 signal = gen1.go()
 
 gen1.make_wave_scaled(signal)
@@ -327,10 +331,10 @@ print("\033[33mМощность сигнала (временная област�
 gen2 = generator()
 gen2.modulation = "FSK"
 gen2.setFs(8000)
-gen2.setFcar(525)
+gen2.setFcar(725)
 gen2.setAmpl(256)
-gen2.setCode(0x54)
-# gen2.setAModFreq(8)
+gen2.setCode(0xe0)
+#gen2.setAMmodFreq(12)
 signal2 = gen2.go()
 
 gen2.make_wave_scaled(signal2)
