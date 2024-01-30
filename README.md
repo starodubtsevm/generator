@@ -77,6 +77,3 @@ class generator:
         """функция расчета спектра сигнала)"""
     def calc_power(self, data):
         """функция вычисления мощности сигнала"""
-
-
-  gen2.make_spectr(mix, 4)
